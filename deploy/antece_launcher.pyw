@@ -1,9 +1,12 @@
 """
 绝区零一条龙 antece版 启动器。
 
-桌面快捷方式用 .venv\\Scripts\\pythonw.exe 运行本文件（不弹黑框）：
+桌面快捷方式用 .venv\\Scripts\\python.exe 运行本文件（快捷方式设为最小化，启动后马上隐藏黑框）。
+不用 pythonw.exe：uv 装的 Python 没有签名，Windows「智能应用控制」从 2026-11-24 起拦截 pythonw.exe
+（python.exe 还能运行）。界面也用 python.exe 加 CREATE_NO_WINDOW 启动，不弹黑框。
+步骤：
 0. 不是管理员就弹 UAC，以管理员身份重新运行（游戏是管理员进程，一条龙不是管理员就点不动游戏）。
-1. 在 main 分支、没有未提交的改动时，从 antece1/auto-zzz 拉取最新代码（只快进，不覆盖本地改动）。
+1. 在 main 分支、没有未提交的改动时，从 antece1/zzz-onedragon-antece-version 拉取最新代码（只快进，不覆盖本地改动）。
 2. 代码更新里 pyproject.toml / uv.lock 有变化时，用 uv 同步依赖。
 3. 启动一条龙界面。
 
@@ -19,7 +22,7 @@ import traceback
 from pathlib import Path
 
 ROOT: Path = Path(__file__).resolve().parent.parent
-ANTECE_REPO: str = 'https://github.com/antece1/auto-zzz.git'
+ANTECE_REPO: str = 'https://github.com/antece1/zzz-onedragon-antece-version.git'
 BRANCH: str = 'main'
 LOG_PATH: Path = ROOT / '.log' / 'antece_launcher.log'
 NO_WINDOW: int = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
@@ -38,7 +41,7 @@ def run(cmd: list[str], timeout: float = 60) -> subprocess.CompletedProcess:
 
 def update_code() -> bool:
     """
-    从 antece1/auto-zzz 快进到最新代码
+    从 antece1/zzz-onedragon-antece-version 快进到最新代码
     :return: 依赖文件是否有变化
     """
     git = shutil.which('git')
@@ -91,11 +94,27 @@ def sync_deps() -> None:
     log('依赖已同步' if result.returncode == 0 else f'依赖同步失败：{result.stderr.strip()[-500:]}')
 
 
+def console_python() -> str:
+    """同一个 venv 里的 python.exe（pythonw.exe 会被智能应用控制拦截）"""
+    python = Path(sys.executable).with_name('python.exe')
+    return str(python if python.exists() else sys.executable)
+
+
+def hide_own_console() -> None:
+    """用 python.exe 运行时会带一个黑框，马上藏起来"""
+    try:
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)  # SW_HIDE
+    except Exception:  # noqa: BLE001 藏不掉也不影响启动
+        pass
+
+
 def start_gui() -> None:
-    pythonw = Path(sys.executable).with_name('pythonw.exe')
-    exe = str(pythonw if pythonw.exists() else sys.executable)
     env = dict(os.environ, PYTHONPATH=str(ROOT / 'src'))
-    subprocess.Popen([exe, str(ROOT / 'src' / 'zzz_od' / 'gui' / 'app.py')], cwd=ROOT, env=env)
+    # CREATE_NO_WINDOW：python.exe 不弹黑框，界面窗口照常显示
+    subprocess.Popen([console_python(), str(ROOT / 'src' / 'zzz_od' / 'gui' / 'app.py')], cwd=ROOT, env=env,
+                     creationflags=NO_WINDOW)
     log('已启动一条龙界面')
 
 
@@ -112,7 +131,8 @@ def ensure_admin() -> bool:
     shell_execute.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_wchar_p,
                               ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_int]
     shell_execute.restype = ctypes.c_void_p
-    rc = shell_execute(None, 'runas', sys.executable, f'"{Path(__file__).resolve()}"', str(ROOT), 1) or 0
+    # 以管理员重新运行时用 python.exe 并隐藏窗口（SW_HIDE），不弹黑框
+    rc = shell_execute(None, 'runas', console_python(), f'"{Path(__file__).resolve()}"', str(ROOT), 0) or 0
     if rc <= 32:  # 返回值不大于 32 表示失败；在 UAC 里点了「否」是 5
         log(f'没有获得管理员权限（ShellExecuteW 返回 {rc}），不启动')
         ctypes.windll.user32.MessageBoxW(
@@ -124,6 +144,7 @@ def ensure_admin() -> bool:
 
 
 def main() -> None:
+    hide_own_console()
     if not ensure_admin():
         return
     log(f'---- 启动 antece版（{ROOT}，管理员）')

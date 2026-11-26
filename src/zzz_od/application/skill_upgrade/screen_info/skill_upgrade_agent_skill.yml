@@ -1,0 +1,63 @@
+screen_id: skill_upgrade_agent_skill
+screen_name: 代理人-技能
+pc_alt: false
+area_list:
+- area_name: 标题-代理人攻略
+  area_type: text
+  id_mark: true
+  pc_rect: [240, 25, 400, 80]
+  text: 代理人攻略
+  lcs_percent: 0.6
+- area_name: 标签-技能
+  area_type: text
+  id_mark: true
+  pc_rect: [1300, 970, 1510, 1025]
+  text: 技能
+  lcs_percent: 0.5
+  color_range: [[150, 150, 0], [255, 255, 110]]
+- area_name: 技能等级-普攻
+  area_type: text
+  pc_rect: [941, 725, 1081, 790]
+- area_name: 技能等级-闪避
+  area_type: text
+  pc_rect: [1114, 725, 1254, 790]
+- area_name: 技能等级-支援
+  area_type: text
+  pc_rect: [1287, 725, 1427, 790]
+- area_name: 技能等级-特殊技
+  area_type: text
+  pc_rect: [1467, 725, 1607, 790]
+- area_name: 技能等级-连携技
+  area_type: text
+  pc_rect: [1634, 725, 1774, 790]
+- area_name: 技能-普攻
+  area_type: none
+  pc_rect: [985, 615, 1085, 715]
+- area_name: 技能-闪避
+  area_type: none
+  pc_rect: [1155, 615, 1255, 715]
+- area_name: 技能-支援
+  area_type: none
+  pc_rect: [1328, 615, 1428, 715]
+- area_name: 技能-特殊技
+  area_type: none
+  pc_rect: [1500, 615, 1600, 715]
+- area_name: 技能-连携技
+  area_type: none
+  pc_rect: [1672, 615, 1772, 715]
+- area_name: 按钮-返回
+  area_type: template
+  pc_rect: [82, 13, 150, 90]
+  template_sub_dir: menu
+  template_id: back
+  template_match_threshold: 0.7
+  goto_list:
+  - 代理人-列表
+- area_name: 按钮-基础
+  area_type: text
+  pc_rect: [1060, 960, 1250, 1035]
+  text: 基础
+  lcs_percent: 1.0
+  color_range: [[200, 200, 200], [255, 255, 255]]
+  goto_list:
+  - 代理人-基础

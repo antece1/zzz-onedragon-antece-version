@@ -1,0 +1,32 @@
+screen_id: skill_upgrade_agent_skill_detail
+screen_name: 代理人-技能详情
+pc_alt: false
+area_list:
+- area_name: 标签-描述
+  area_type: text
+  id_mark: true
+  pc_rect: [1420, 25, 1640, 80]
+  text: 描述
+  lcs_percent: 1.0
+- area_name: 按钮-技能强化
+  area_type: text
+  id_mark: true
+  pc_rect: [1590, 1000, 1850, 1060]
+  text: 技能强化
+  lcs_percent: 0.75
+  goto_list:
+  - 代理人-技能强化弹窗
+- area_name: 区域-技能名
+  area_type: text
+  pc_rect: [120, 160, 500, 215]
+- area_name: 区域-技能等级
+  area_type: text
+  pc_rect: [800, 155, 960, 215]
+- area_name: 按钮-返回
+  area_type: template
+  pc_rect: [82, 13, 150, 90]
+  template_sub_dir: menu
+  template_id: back
+  template_match_threshold: 0.7
+  goto_list:
+  - 代理人-技能

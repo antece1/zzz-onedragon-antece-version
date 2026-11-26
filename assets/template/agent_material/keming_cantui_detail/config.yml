@@ -1,0 +1,6 @@
+sub_dir: agent_material
+template_id: keming_cantui_detail
+template_name: 材料-刻命残蜕（诺姆；材料详情弹窗里的大图标，截图比例未核对）
+template_shape: rectangle
+auto_mask: false
+point_list: []

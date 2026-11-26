@@ -107,3 +107,4 @@ src/zzz_od/telemetry/**/__pycache__/
 telemetry_export_*.json
 telemetry_report_*.json
 privacy_report_*.json
+config/auto_start.yml

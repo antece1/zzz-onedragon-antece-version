@@ -1,0 +1,50 @@
+screen_id: skill_upgrade_agent_material_convert_dialog
+screen_name: 代理人-材料转化弹窗
+pc_alt: false
+area_list:
+- area_name: 标题-材料转化
+  area_type: text
+  id_mark: true
+  pc_rect: [820, 355, 1100, 430]
+  text: 材料转化
+  lcs_percent: 0.75
+- area_name: 按钮-取消
+  area_type: text
+  id_mark: true
+  pc_rect: [680, 725, 950, 795]
+  text: 取消
+  lcs_percent: 1.0
+  color_range: [[200, 200, 200], [255, 255, 255]]
+- area_name: 按钮-确认
+  area_type: text
+  pc_rect: [985, 725, 1240, 795]
+  text: 确认
+  lcs_percent: 1.0
+  color_range: [[200, 200, 200], [255, 255, 255]]
+- area_name: 区域-源图标
+  area_type: text
+  pc_rect: [775, 425, 890, 540]
+- area_name: 区域-目标图标
+  area_type: text
+  pc_rect: [1030, 425, 1145, 540]
+- area_name: 区域-源数量
+  area_type: text
+  pc_rect: [760, 530, 905, 580]
+- area_name: 区域-目标数量
+  area_type: text
+  pc_rect: [1015, 530, 1160, 580]
+- area_name: 区域-转化说明
+  area_type: text
+  pc_rect: [600, 570, 1320, 635]
+- area_name: 区域-消耗丁尼
+  area_type: text
+  pc_rect: [790, 628, 1130, 684]
+- area_name: 区域-获得物品
+  area_type: text
+  pc_rect: [830, 575, 1090, 650]
+- area_name: 按钮-获得确认
+  area_type: text
+  pc_rect: [880, 712, 1075, 760]
+  text: 确认
+  lcs_percent: 1.0
+  color_range: [[200, 200, 200], [255, 255, 255]]

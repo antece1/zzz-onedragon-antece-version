@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/antece1/auto-zzz/main/assets/ui/antece_logo.png" width="120" alt="绝区零一条龙 antece版"/>
+<img src="https://raw.githubusercontent.com/antece1/zzz-onedragon-antece-version/main/assets/ui/antece_logo.png" width="120" alt="绝区零一条龙 antece版"/>
 
 # 绝区零一条龙 antece版
 
@@ -12,8 +12,8 @@
 
 | 功能 | 在哪 | 做什么 |
 |---|---|---|
-| 代理人升级 | 「应用运行」→「代理人升级」 | 按升级清单在游戏里升代理人技能；每次点击前先识别画面，默认只演练不花材料。说明见 [agent_upgrade.md](https://github.com/antece1/auto-zzz/blob/main/docs/develop/zzz/application/agent_upgrade.md) |
-| 资源调度员 2.0 | [网页](https://antece1.github.io/auto-zzz/)（源码 `docs/index.html`） | 算该练谁、缺多少材料、每天电量怎么排；按背包生成升级清单，跑完后导入结果 |
+| 代理人升级 | 「应用运行」→「代理人升级」 | 按升级清单在游戏里升代理人技能；每次点击前先识别画面，默认只演练不花材料。说明见 [agent_upgrade.md](https://github.com/antece1/zzz-onedragon-antece-version/blob/main/docs/develop/zzz/application/agent_upgrade.md) |
+| 资源调度员 2.0 | [网页](https://antece1.github.io/zzz-onedragon-antece-version/)（源码 `docs/index.html`） | 算该练谁、缺多少材料、每天电量怎么排；按背包生成升级清单，跑完后导入结果 |
 | 每晚同步和每日推送 | `tools/planner/` | 每晚从 HoYoLAB 读账号数据更新网页；把刷取排期写进体力计划，一条龙照常跑 |
 | 桌面启动器 | `deploy/antece_launcher.pyw` | 以管理员身份启动（游戏是管理员进程），启动前自动更新到本仓库最新代码 |
 | 代码源 | `config/repository.yml` | 界面里「同步代码」只从本仓库拉，不会被官方代码覆盖 |
@@ -26,7 +26,7 @@
 
 ## 安装和使用
 
-步骤见 [antece_launcher.md](https://github.com/antece1/auto-zzz/blob/main/docs/develop/setup/antece_launcher.md)：克隆到单独的目录（不要和官方安装共用），`uv sync`，复制账号配置，用桌面快捷方式启动。不要在 antece版的目录里安装官方启动器，它会拉官方代码覆盖 antece版的改动。
+步骤见 [antece_launcher.md](https://github.com/antece1/zzz-onedragon-antece-version/blob/main/docs/develop/setup/antece_launcher.md)：克隆到单独的目录（不要和官方安装共用），`uv sync`，复制账号配置，用桌面快捷方式启动。不要在 antece版的目录里安装官方启动器，它会拉官方代码覆盖 antece版的改动。
 
 ## 分支
 
@@ -40,7 +40,7 @@
 
 ## 致谢与许可证
 
-代码来自 [OneDragon-Anything/ZenlessZoneZero-OneDragon](https://github.com/OneDragon-Anything/ZenlessZoneZero-OneDragon)（DoctorReid 和所有贡献者），按 GPL-3.0 发布，见 [LICENSE](https://github.com/antece1/auto-zzz/blob/main/LICENSE)。antece版的改动同样是 GPL-3.0。
+代码来自 [OneDragon-Anything/ZenlessZoneZero-OneDragon](https://github.com/OneDragon-Anything/ZenlessZoneZero-OneDragon)（DoctorReid 和所有贡献者），按 GPL-3.0 发布，见 [LICENSE](https://github.com/antece1/zzz-onedragon-antece-version/blob/main/LICENSE)。antece版的改动同样是 GPL-3.0。
 
 这是非官方修改版，和官方项目、HoYoverse / 米哈游都没有关系；有问题请在本仓库反馈，不要去官方提。自动化操作游戏可能违反游戏的用户协议，风险自负。
 

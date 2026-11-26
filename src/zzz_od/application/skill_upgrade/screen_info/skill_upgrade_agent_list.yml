@@ -1,0 +1,35 @@
+screen_id: skill_upgrade_agent_list
+screen_name: 代理人-列表
+pc_alt: false
+area_list:
+- area_name: 标题-代理人攻略
+  area_type: text
+  id_mark: true
+  pc_rect: [240, 25, 400, 80]
+  text: 代理人攻略
+  lcs_percent: 0.6
+- area_name: 按钮-技能
+  area_type: text
+  id_mark: true
+  pc_rect: [1090, 870, 1270, 925]
+  text: 技能
+  lcs_percent: 1.0
+  goto_list:
+  - 代理人-技能
+- area_name: 区域-代理人名字
+  area_type: text
+  pc_rect: [190, 915, 460, 975]
+- area_name: 区域-代理人卡片
+  area_type: text
+  pc_rect: [1040, 0, 1920, 1080]
+- area_name: 区域-列表滚动
+  area_type: none
+  pc_rect: [1400, 500, 1500, 620]
+- area_name: 按钮-返回
+  area_type: template
+  pc_rect: [82, 13, 150, 90]
+  template_sub_dir: menu
+  template_id: back
+  template_match_threshold: 0.7
+  goto_list:
+  - 大世界-普通

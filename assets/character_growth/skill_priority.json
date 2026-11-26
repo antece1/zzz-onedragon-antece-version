@@ -1,0 +1,188 @@
+{
+ "_说明": "角色技能提升用的技能优先级（攻略综合，材料有限的账号）。按代理人 id 记，技能等级为去掉影画加成的基础等级。priority_tier：high / mid / low，决定非 ★ 代理人的先后；skill_order：同一代理人先升哪个技能；skill_targets：攻略建议等级，开启「先到攻略建议等级」时先把各技能升到这里，再按培养目标继续。没有列出的代理人按 特殊技 > 连携技 > 普攻 > 支援 > 闪避，目标只看培养目标。",
+ "source": "ZZZ-Auto planner reference/agent_investment.json（BWIKI 等攻略综合）",
+ "date": "2026-11-21",
+ "game_version": "3.3",
+ "agents": {
+  "hoshimi_miyabi": {
+   "name": "星见雅",
+   "priority_tier": "high",
+   "skill_order": [
+    "普攻",
+    "连携技",
+    "特殊技",
+    "支援",
+    "闪避"
+   ],
+   "skill_targets": {
+    "普攻": 12,
+    "闪避": 4,
+    "支援": 4,
+    "特殊技": 11,
+    "连携技": 11
+   }
+  },
+  "astra_yao": {
+   "name": "耀嘉音",
+   "priority_tier": "high",
+   "skill_order": [
+    "特殊技",
+    "连携技",
+    "支援",
+    "闪避",
+    "普攻"
+   ],
+   "skill_targets": {
+    "普攻": 1,
+    "闪避": 1,
+    "支援": 4,
+    "特殊技": 12,
+    "连携技": 9
+   }
+  },
+  "yanagi": {
+   "name": "柳",
+   "priority_tier": "high",
+   "skill_order": [
+    "特殊技",
+    "连携技",
+    "普攻",
+    "支援",
+    "闪避"
+   ],
+   "skill_targets": {
+    "普攻": 8,
+    "闪避": 1,
+    "支援": 4,
+    "特殊技": 11,
+    "连携技": 10
+   }
+  },
+  "ellen": {
+   "name": "艾莲",
+   "priority_tier": "mid",
+   "skill_order": [
+    "普攻",
+    "特殊技",
+    "连携技",
+    "闪避",
+    "支援"
+   ],
+   "skill_targets": {
+    "普攻": 11,
+    "闪避": 8,
+    "支援": 1,
+    "特殊技": 11,
+    "连携技": 11
+   }
+  },
+  "zhu_yuan": {
+   "name": "朱鸢",
+   "priority_tier": "mid",
+   "skill_order": [
+    "普攻",
+    "连携技",
+    "特殊技",
+    "闪避",
+    "支援"
+   ],
+   "skill_targets": {
+    "普攻": 12,
+    "闪避": 6,
+    "支援": 1,
+    "特殊技": 10,
+    "连携技": 11
+   }
+  },
+  "jane_doe": {
+   "name": "简",
+   "priority_tier": "mid",
+   "skill_order": [
+    "闪避",
+    "普攻",
+    "连携技",
+    "特殊技",
+    "支援"
+   ],
+   "skill_targets": {
+    "普攻": 10,
+    "闪避": 10,
+    "支援": 1,
+    "特殊技": 9,
+    "连携技": 9
+   }
+  },
+  "qingyi": {
+   "name": "青衣",
+   "priority_tier": "mid",
+   "skill_order": [
+    "普攻",
+    "特殊技",
+    "闪避",
+    "连携技",
+    "支援"
+   ],
+   "skill_targets": {
+    "普攻": 11,
+    "闪避": 8,
+    "支援": 1,
+    "特殊技": 10,
+    "连携技": 8
+   }
+  },
+  "nicole": {
+   "name": "妮可",
+   "priority_tier": "mid",
+   "skill_order": [
+    "特殊技",
+    "连携技",
+    "支援",
+    "普攻",
+    "闪避"
+   ],
+   "skill_targets": {
+    "普攻": 1,
+    "闪避": 1,
+    "支援": 5,
+    "特殊技": 9,
+    "连携技": 8
+   }
+  },
+  "lycaon": {
+   "name": "莱卡恩",
+   "priority_tier": "mid",
+   "skill_order": [
+    "特殊技",
+    "支援",
+    "连携技",
+    "普攻",
+    "闪避"
+   ],
+   "skill_targets": {
+    "普攻": 3,
+    "闪避": 1,
+    "支援": 9,
+    "特殊技": 11,
+    "连携技": 9
+   }
+  },
+  "soukaku": {
+   "name": "苍角",
+   "priority_tier": "low",
+   "skill_order": [
+    "特殊技",
+    "连携技",
+    "普攻",
+    "支援",
+    "闪避"
+   ],
+   "skill_targets": {
+    "普攻": 1,
+    "闪避": 1,
+    "支援": 1,
+    "特殊技": 8,
+    "连携技": 4
+   }
+  }
+ }
+}

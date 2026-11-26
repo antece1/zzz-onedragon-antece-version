@@ -5,11 +5,11 @@ repositories:
     main:
       label: 主分支
       desc: 选择后请点击同步最新代码
-  # antece版只从 antece1/auto-zzz 同步代码，不回退到官方仓库（官方代码会覆盖 antece版的改动）
+  # antece版只从 antece1/zzz-onedragon-antece-version 同步代码，不回退到官方仓库（官方代码会覆盖 antece版的改动）
   options:
     github:
       label: GitHub（antece版）
-      url: "https://github.com/antece1/auto-zzz.git"
+      url: "https://github.com/antece1/zzz-onedragon-antece-version.git"
       use_proxy: true
 env_source:
   default: cnb

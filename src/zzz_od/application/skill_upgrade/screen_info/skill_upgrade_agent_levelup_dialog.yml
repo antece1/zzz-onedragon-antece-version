@@ -1,0 +1,40 @@
+screen_id: skill_upgrade_agent_levelup_dialog
+screen_name: 代理人-培训弹窗
+pc_alt: false
+area_list:
+- area_name: 标题-代理人培训
+  area_type: text
+  id_mark: true
+  pc_rect: [380, 140, 820, 330]
+  text: 代理人培训
+  lcs_percent: 0.8
+- area_name: 按钮-关闭
+  area_type: template
+  id_mark: true
+  pc_rect: [1200, 120, 1560, 380]
+  template_sub_dir: menu
+  template_id: btn_close
+  template_match_threshold: 0.7
+  goto_list:
+  - 代理人-基础
+- area_name: 区域-培训内容
+  area_type: text
+  pc_rect: [470, 400, 1450, 790]
+- area_name: 区域-丁尼
+  area_type: text
+  pc_rect: [470, 790, 1450, 900]
+- area_name: 按钮-自动添加
+  area_type: text
+  pc_rect: [560, 740, 1000, 900]
+  text: 自动添加
+  lcs_percent: 1.0
+  color_range: [[200, 200, 200], [255, 255, 255]]
+- area_name: 按钮-升级
+  area_type: text
+  pc_rect: [1000, 740, 1440, 900]
+  text: 升级
+  lcs_percent: 1.0
+  color_range: [[200, 200, 200], [255, 255, 255]]
+- area_name: 区域-全屏提示
+  area_type: text
+  pc_rect: [0, 0, 1920, 1080]

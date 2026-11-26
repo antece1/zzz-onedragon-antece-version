@@ -1,0 +1,6 @@
+sub_dir: agent_card
+template_id: jane_doe
+template_name: 代理人卡片-简
+template_shape: rectangle
+auto_mask: false
+point_list: []

@@ -150,6 +150,12 @@ try:
             self.pip_btn = PipButton(self.ctx, parent=self)
             self.add_nav_widget(self.pip_btn)
 
+            # 资源调度员：代理人培养规划，网页 docs/index.html 移植到程序里的界面，紧挨在画中画下面
+            from zzz_od.gui.view.character_growth.character_growth_interface import (
+                CharacterGrowthInterface,
+            )
+            self.add_sub_interface(CharacterGrowthInterface(self.ctx, parent=self))
+
             # 点赞
             from one_dragon_qt.view.like_interface import LikeInterface
             self.add_sub_interface(

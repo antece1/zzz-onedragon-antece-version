@@ -6,7 +6,7 @@
 
 ## 怎么用
 
-1. 准备清单：在 [资源调度员 2.0](https://antece1.github.io/auto-zzz/) 网页（源码 `docs/index.html`）的「升级清单」里按背包生成并下载 `plan.json`，放到 `config/agent_upgrade/plan.json`（该目录已 gitignore）；也可以复制 `assets/agent_upgrade/plan.example.json` 手改。
+1. 准备清单：在 [资源调度员 2.0](https://antece1.github.io/zzz-onedragon-antece-version/) 网页（源码 `docs/index.html`）的「升级清单」里按背包生成并下载 `plan.json`，放到 `config/agent_upgrade/plan.json`（该目录已 gitignore）；也可以复制 `assets/agent_upgrade/plan.example.json` 手改。
 2. 游戏设置为 1920×1080、简体中文；要练的代理人在游戏里标星，让其排在代理人列表第一位。
 3. 「应用运行」里找到「代理人升级」，设置里：
    - **升级清单**：留空用默认位置。

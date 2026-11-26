@@ -2,7 +2,7 @@
 每晚同步：从 HoYoLAB 战绩接口读账号，更新资源调度员 2.0 的规划数据，并把数据（不含 UID）推到 GitHub Pages。
 
 用法（Windows 计划任务每天 23:00，用 antece版运行目录的 .venv\\Scripts\\pythonw.exe 运行）:
-  python tools/planner/hoyolab_sync.py            # 同步并推送到 antece1/auto-zzz 的 main
+  python tools/planner/hoyolab_sync.py            # 同步并推送到 antece1/zzz-onedragon-antece-version 的 main
   python tools/planner/hoyolab_sync.py --no-push  # 只更新本地，不推 GitHub
   python tools/planner/hoyolab_sync.py --dry-run  # 只读接口、打印结果，不写任何文件
 
@@ -34,7 +34,7 @@ LOG_DIR: Path = ROOT / '.log' / 'planner'
 RAW_DIR: Path = LOG_DIR / 'hoyolab_raw'  # 接口原始返回，只留在本机
 LOG: Path = LOG_DIR / 'hoyolab_sync.log'
 DATA_OUT: Path = ROOT / 'docs' / 'data'
-ANTECE_REPO: str = 'https://github.com/antece1/auto-zzz.git'
+ANTECE_REPO: str = 'https://github.com/antece1/zzz-onedragon-antece-version.git'
 BRANCH: str = 'main'
 
 API: str = 'https://sg-public-api.hoyolab.com/event/game_record_zzz/api/zzz/'
@@ -194,7 +194,7 @@ def git(*args: str, timeout: float = 60) -> subprocess.CompletedProcess:
 
 def publish(uid: str, synced_at: str) -> None:
     """
-    先快进到 antece1/auto-zzz 最新的 main，再把规划数据写进 docs/data/、提交并推送。
+    先快进到 antece1/zzz-onedragon-antece-version 最新的 main，再把规划数据写进 docs/data/、提交并推送。
     先快进再提交，所以 main 被别处更新过也不会推送失败。
     """
     if not (ROOT / '.git').exists():
@@ -208,7 +208,7 @@ def publish(uid: str, synced_at: str) -> None:
 
     r = git('fetch', ANTECE_REPO, BRANCH, timeout=60)
     if r.returncode:
-        raise RuntimeError('拉取 antece1/auto-zzz 失败：' + r.stderr.strip()[-300:])
+        raise RuntimeError('拉取 antece1/zzz-onedragon-antece-version 失败：' + r.stderr.strip()[-300:])
     git('checkout', '--', 'docs/data')  # 丢掉上次没提交成功的数据，下面重新写
     r = git('merge', '--ff-only', 'FETCH_HEAD')
     if r.returncode:

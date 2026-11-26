@@ -1,0 +1,6 @@
+sub_dir: agent_material
+template_id: keming_cantui
+template_name: 材料-刻命残蜕（诺姆 核心技 恶名狩猎 基塔布鲁；核心技页「消耗材料」格子，1920x1080）
+template_shape: rectangle
+auto_mask: false
+point_list: []
