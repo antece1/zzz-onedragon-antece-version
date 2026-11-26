@@ -3,11 +3,16 @@ from __future__ import annotations
 import contextlib
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QHBoxLayout, QWidget
 from qfluentwidgets import (
     FluentIcon,
+    InfoBar,
+    InfoBarPosition,
+    PrimaryToolButton,
     PushButton,
     SettingCardGroup,
+    SubtitleLabel,
+    ToolButton,
 )
 
 from one_dragon.base.config.one_dragon_config import (
@@ -20,6 +25,7 @@ from one_dragon.base.operation.application.application_group_config import (
     ApplicationGroupConfigItem,
 )
 from one_dragon.base.operation.application_base import ApplicationEventId
+from one_dragon.base.operation.application_run_record import AppRunRecord
 from one_dragon.base.operation.one_dragon_context import (
     ContextInstanceEventEnum,
     OneDragonContext,
@@ -34,6 +40,7 @@ from one_dragon.utils.log_utils import log
 from one_dragon_qt.view.app_run_interface import SplitAppRunInterface
 from one_dragon_qt.view.context_event_signal import ContextEventSignal
 from one_dragon_qt.widgets.app_run_list import AppRunList
+from one_dragon_qt.widgets.app_select_dialog import AppSelectDialog
 from one_dragon_qt.widgets.column import Column
 from one_dragon_qt.widgets.setting_card.combo_box_setting_card import (
     ComboBoxSettingCard,
@@ -68,13 +75,39 @@ class OneDragonRunInterface(SplitAppRunInterface):
         )
 
     def get_left_widget(self) -> QWidget:
-        self.app_run_list = AppRunList(self.ctx)
+        self.app_run_list = AppRunList(self.ctx, enable_task_actions=True)
         self.app_run_list.app_list_changed.connect(self._on_app_list_changed)
         self.app_run_list.app_run_clicked.connect(self._on_app_card_run)
         self.app_run_list.app_switch_changed.connect(self.on_app_switch_run)
         self.app_run_list.app_setting_clicked.connect(self.on_app_setting_clicked)
         self.app_run_list.app_notify_clicked.connect(self.on_app_notify_clicked)
+        self.app_run_list.app_add_clicked.connect(self._on_app_add_clicked)
+        self.app_run_list.app_remove_clicked.connect(self._on_app_remove_clicked)
+        self.app_run_list.app_run_from_clicked.connect(self._on_app_run_from_clicked)
+        self.app_run_list.app_clear_mark_clicked.connect(self._on_app_clear_mark_clicked)
         return self.app_run_list
+
+    def get_left_header(self) -> QWidget:
+        """任务列表标题栏：开始运行一条龙、新增任务"""
+        header = QWidget()
+        layout = QHBoxLayout(header)
+        layout.setContentsMargins(4, 0, 4, 0)
+        layout.setSpacing(8)
+
+        layout.addWidget(SubtitleLabel(gt('任务列表')))
+        layout.addStretch(1)
+
+        self.task_start_btn = PrimaryToolButton(FluentIcon.PLAY)
+        self.task_start_btn.setToolTip(gt('按顺序运行任务列表里打开的任务'))
+        self.task_start_btn.clicked.connect(self._on_start_clicked)
+        layout.addWidget(self.task_start_btn)
+
+        self.task_add_btn = ToolButton(FluentIcon.ADD)
+        self.task_add_btn.setToolTip(gt('新增任务'))
+        self.task_add_btn.clicked.connect(self._on_app_add_clicked)
+        layout.addWidget(self.task_add_btn)
+
+        return header
 
     def get_widget_at_top(self) -> QWidget:
         top = Column()
@@ -112,8 +145,29 @@ class OneDragonRunInterface(SplitAppRunInterface):
         """
         self.app_run_list.set_app_list(
             app_list=self.config.app_list,
-            instance_idx=self.ctx.current_instance_idx
+            instance_idx=self.ctx.current_instance_idx,
+            removable_app_ids=self._removable_app_ids(),
         )
+        self._apply_task_actions_lock()
+
+    def _removable_app_ids(self) -> set[str]:
+        """能删除的任务：手动新增的、并且现在不是默认一条龙应用（应用更新后可能变成默认应用）"""
+        if self.config is None:
+            return set()
+        return set(self.config.added_app_ids) - set(self.ctx.run_context.default_group_apps)
+
+    def _is_task_list_locked(self) -> bool:
+        """一条龙运行中（含暂停）不允许 新增 / 删除 / 从此执行 / 清除标记"""
+        app_runner = getattr(self, 'app_runner', None)  # 右侧运行控件建好之前还没有
+        return not self.ctx.run_context.is_context_stop or (app_runner is not None and app_runner.isRunning())
+
+    def _apply_task_actions_lock(self) -> None:
+        """按运行状态锁住 / 解锁任务列表操作"""
+        enabled = not self._is_task_list_locked()
+        for card in self.app_run_list._app_cards:
+            card.set_task_actions_enabled(enabled)
+        if hasattr(self, 'task_add_btn'):
+            self.task_add_btn.setEnabled(enabled)
 
     def _refresh_app_config(self) -> None:
         self.config = self.ctx.app_group_manager.get_one_dragon_group_config(
@@ -175,6 +229,9 @@ class OneDragonRunInterface(SplitAppRunInterface):
             cmd_utils.cancel_shutdown_sys()
 
     def _on_app_runner_finished(self) -> None:
+        # 「从此执行」只对这一次运行有效；没走到应用组（比如进游戏失败）也要清掉，免得下次正常运行也从中间开始
+        self.ctx.run_context.group_start = None
+        self._apply_task_actions_lock()
         if self.app_runner.app_id != self.app_id:
             return
         after_done = self.ctx.one_dragon_config.after_done
@@ -210,6 +267,115 @@ class OneDragonRunInterface(SplitAppRunInterface):
     def on_context_state_changed(self) -> None:
         SplitAppRunInterface.on_context_state_changed(self)
         self.app_run_list.update_cards_display()
+        self._apply_task_actions_lock()
+        if not hasattr(self, 'task_start_btn'):
+            return
+        if self.ctx.run_context.is_context_running:
+            self.task_start_btn.setIcon(FluentIcon.PAUSE)
+            self.task_start_btn.setToolTip(gt('暂停'))
+        else:
+            self.task_start_btn.setIcon(FluentIcon.PLAY)
+            self.task_start_btn.setToolTip(gt('按顺序运行任务列表里打开的任务'))
+
+    def _show_task_tip(self, text: str, success: bool = True) -> None:
+        """在页面右上角提示任务列表操作的结果"""
+        bar = InfoBar.success if success else InfoBar.warning
+        bar(title=text, content='', orient=Qt.Orientation.Horizontal, isClosable=True,
+            position=InfoBarPosition.TOP_RIGHT, duration=3000, parent=self)
+
+    def _on_app_add_clicked(self) -> None:
+        """新增任务：从还不在列表里的应用中选一个加到末尾"""
+        if self.config is None:
+            return
+        if self._is_task_list_locked():
+            self._show_task_tip(gt('正在运行，先停止再新增任务'), success=False)
+            return
+        existing = {item.app_id for item in self.config.app_list}
+        candidates: list[tuple[str, str]] = [
+            (app_id, self.ctx.run_context.get_application_name(app_id))
+            for app_id in self.ctx.run_context.standalone_apps
+            if app_id not in existing
+        ]
+        if len(candidates) == 0:
+            self._show_task_tip(gt('所有应用都已经在任务列表里了'), success=False)
+            return
+
+        dialog = AppSelectDialog(candidates, parent=self.window())
+        if not dialog.exec():
+            return
+        app_id = dialog.selected_app_id
+        if app_id is None or self._is_task_list_locked():  # 对话框开着时可能用快捷键开始了运行
+            return
+        item = self.config.add_app(app_id)
+        if item is None:
+            return
+        item.app_name = self.ctx.run_context.get_application_name(app_id)
+        self._init_app_list()
+        self._update_setting_btn_visibility()
+        self._show_task_tip(f"{gt('已新增')} {gt(item.app_name)}")
+
+    def _on_app_remove_clicked(self, app_id: str) -> None:
+        """删除手动新增的任务（应用本身和它的设置都还在，可以再新增回来）"""
+        if self.config is None or app_id not in self._removable_app_ids():
+            return
+        if self._is_task_list_locked():
+            self._show_task_tip(gt('正在运行，先停止再删除任务'), success=False)
+            return
+        app_name = self.ctx.run_context.get_application_name(app_id)
+        self.config.remove_added_app(app_id)
+        self._init_app_list()
+        self._update_setting_btn_visibility()
+        self._show_task_tip(f"{gt('已删除')} {gt(app_name)}")
+
+    def _on_app_run_from_clicked(self, app_id: str) -> None:
+        """从此执行：从这个任务开始按顺序运行一条龙"""
+        if self._is_task_list_locked():
+            self._show_task_tip(gt('正在运行，先停止再从此执行'), success=False)
+            return
+
+        # 运行实例选「全部」、当前账号又没开「一条龙中运行」时，一条龙会先切到别的账号，
+        # 从此执行就对不上界面上这个列表了，先提示
+        current = self.ctx.one_dragon_config.current_active_instance
+        od_list = self.ctx.one_dragon_config.instance_list_in_od
+        if (
+            self.ctx.one_dragon_config.instance_run == InstanceRun.ALL.value.value
+            and len(od_list) > 0
+            and current is not None
+            and all(instance.idx != current.idx for instance in od_list)
+        ):
+            self._show_task_tip(gt('当前账号没开「一条龙中运行」，从此执行会跑到别的账号，请先打开'), success=False)
+            return
+
+        self.ctx.run_context.group_start = (self.ctx.current_instance_idx, app_id)
+        self.run_app()
+
+    def _on_app_clear_mark_clicked(self, app_id: str) -> None:
+        """
+        清除标记：把今天的完成标记改回未运行，下次一条龙会重新运行这个任务。
+        只改完成状态，不清应用自己记的进度（如恶名狩猎剩余次数、世界巡逻已完成路线）。
+        """
+        if self._is_task_list_locked():
+            self._show_task_tip(gt('正在运行，先停止再清除标记'), success=False)
+            return
+        run_record = self.ctx.run_context.get_run_record(
+            app_id=app_id,
+            instance_idx=self.ctx.current_instance_idx,
+        )
+        app_name = self.ctx.run_context.get_application_name(app_id)
+        if run_record is None:
+            self._show_task_tip(f"{gt(app_name)} {gt('没有完成标记，每次都会运行')}", success=False)
+            return
+        run_record.update_status(AppRunRecord.STATUS_WAIT, only_status=True)
+        self.app_run_list.update_cards_display()
+
+        # 有些任务按自己的进度判断完成（如恶名狩猎本周次数用完、式舆防卫战满星），清了状态也还算完成
+        if run_record.is_done or run_record.run_status_under_now == AppRunRecord.STATUS_SUCCESS:
+            self._show_task_tip(
+                f"{gt(app_name)} {gt('按自己的进度判断完成，清除不了；要强制运行请用「从此执行」')}",
+                success=False,
+            )
+            return
+        self._show_task_tip(f"{gt('已清除标记')} {gt(app_name)}")
 
     def _on_app_state_changed(self, event) -> None:
         self.app_run_list.update_cards_display()

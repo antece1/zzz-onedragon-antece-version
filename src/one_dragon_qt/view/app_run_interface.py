@@ -244,7 +244,19 @@ class SplitAppRunInterface(AppRunInterface):
         left_widget = self.get_left_widget()
         left_widget.setStyleSheet("QWidget { background-color: transparent; }")
         scroll_area.setWidget(left_widget)
-        outer_layout.addWidget(scroll_area, stretch=self._left_stretch)
+
+        # 左侧上方可以放一行不随列表滚动的标题栏
+        left_header = self.get_left_header()
+        if left_header is None:
+            outer_layout.addWidget(scroll_area, stretch=self._left_stretch)
+        else:
+            left_column = QWidget()
+            left_layout = QVBoxLayout(left_column)
+            left_layout.setContentsMargins(0, 0, 0, 0)
+            left_layout.setSpacing(6)
+            left_layout.addWidget(left_header)
+            left_layout.addWidget(scroll_area, stretch=1)
+            outer_layout.addWidget(left_column, stretch=self._left_stretch)
 
         # 右侧：运行控件（由 AppRunInterface.get_content_widget 创建）
         right_widget = self.get_content_widget()
@@ -254,3 +266,7 @@ class SplitAppRunInterface(AppRunInterface):
     def get_left_widget(self) -> QWidget:
         """返回左侧内容控件，由子类实现。"""
         raise NotImplementedError
+
+    def get_left_header(self) -> QWidget | None:
+        """返回左侧列表上方固定不滚动的标题栏，默认没有。"""
+        return None

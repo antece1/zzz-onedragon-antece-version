@@ -101,6 +101,8 @@ class ApplicationRunContext:
         self.event_bus: ContextEventBus = ContextEventBus()
         self.default_group_apps: list[str] = []  # 默认进入一条龙列表的应用ID列表
         self.standalone_apps: list[str] = []  # 允许在通用应用列表中选择的应用ID列表
+        # 一条龙「从此执行」：(账号实例下标, 应用ID)。下次运行这个实例的应用组时从这个应用开始，读过一次就清空
+        self.group_start: tuple[int, str] | None = None
 
         # 当前运行的应用
         self.current_app_id: str | None = None

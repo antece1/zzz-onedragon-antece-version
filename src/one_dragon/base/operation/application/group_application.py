@@ -2,6 +2,7 @@ from typing import ClassVar
 
 from one_dragon.base.operation.application.application_group_config import (
     ApplicationGroupConfig,
+    ApplicationGroupConfigItem,
 )
 from one_dragon.base.operation.application_base import Application
 from one_dragon.base.operation.one_dragon_context import OneDragonContext
@@ -34,8 +35,10 @@ class GroupApplication(Application):
         self._group_id: str = group_id
 
         self._group_config: ApplicationGroupConfig | None = None
+        self._app_list: list[ApplicationGroupConfigItem] = []  # 开始运行时复制的应用顺序
         self._current_app_idx: int = 0  # 当前运行的app 下标
         self._fail_app_idx_list: list[int] = []  # 失败的app下标 未实现重试功能
+        self._force_run_app_id: str | None = None  # 「从此执行」选中的应用，跳过开关和完成标记的判断
 
     @operation_node(name='获取应用组配置', is_start_node=True)
     def get_group_config(self) -> OperationRoundResult:
@@ -49,7 +52,24 @@ class GroupApplication(Application):
         if self._group_config is None:
             return self.round_fail(status=f"未找到应用组 {self._group_id}")
 
+        # 运行期间界面上新增 / 删除任务会换掉 app_list，这里先复制一份顺序，免得下标错位跳过任务。
+        # 复制的是列表，里面的配置项还是同一批对象，运行中改开关仍然生效。
+        self._app_list = list(self._group_config.app_list)
         self._current_app_idx = 0
+        self._force_run_app_id = None
+
+        # 「从此执行」：从选中的应用开始，选中的这个不管开关和完成标记都运行一次。
+        # 只对点「从此执行」时的那个账号实例生效，读过一次就清空。
+        group_start = self.ctx.run_context.group_start
+        self.ctx.run_context.group_start = None
+        if group_start is not None and group_start[0] == self.ctx.current_instance_idx:
+            start_app_id = group_start[1]
+            for idx, item in enumerate(self._app_list):
+                if item.app_id == start_app_id:
+                    self._current_app_idx = idx
+                    self._force_run_app_id = start_app_id
+                    break
+
         return self.round_success()
 
     @node_from(from_name='获取应用组配置')
@@ -61,10 +81,10 @@ class GroupApplication(Application):
         :return:
         """
 
-        if self._current_app_idx < 0 or self._current_app_idx >= len(self._group_config.app_list):
+        if self._current_app_idx < 0 or self._current_app_idx >= len(self._app_list):
             return self.round_success(status=GroupApplication.STATUS_ALL_DONE)
 
-        config_item = self._group_config.app_list[self._current_app_idx]
+        config_item = self._app_list[self._current_app_idx]
         app = self.ctx.run_context.get_application(
             app_id=config_item.app_id,
             instance_idx=self.ctx.current_instance_idx,
@@ -73,14 +93,16 @@ class GroupApplication(Application):
         self._current_app_idx += 1
         if app is None:
             return self.round_fail(status=f"未找到应用 {config_item.app_id}")
-        if not config_item.enabled:
+        force_run = config_item.app_id == self._force_run_app_id
+        self._force_run_app_id = None
+        if not config_item.enabled and not force_run:
             return self.round_success(status=f'应用未启用 {app.op_name}')
         run_record = self.ctx.run_context.get_run_record(
             app_id=app.app_id,
             instance_idx=self.ctx.current_instance_idx,
         )
         # 一条龙应用默认有每日记录；非一条龙应用可以没有记录。
-        if run_record is not None:
+        if run_record is not None and not force_run:
             run_record.check_and_update_status()
             if run_record.is_done:
                 return self.round_success(status=f'应用已完成 {app.op_name}')

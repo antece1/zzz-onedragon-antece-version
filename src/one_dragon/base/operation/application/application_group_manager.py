@@ -94,9 +94,15 @@ class ApplicationGroupManager:
         config = ApplicationGroupConfig(instance_idx=instance_idx, group_id=DEFAULT_GROUP_ID)
         need_migration = not config.is_file_exists
 
-        # 运行时只加载默认组应用。update_full_app_list 会保留 YAML 中其他原始项，
-        # 但不会把 standalone、internal 或未注册应用放进一条龙运行列表。
-        config.update_full_app_list(self._default_app_id_list)
+        # 运行时只加载默认组应用，加上用户在「任务列表」里手动新增的应用。
+        # update_full_app_list 会保留 YAML 中其他原始项，
+        # 但不会把没新增过的 standalone、internal 或未注册应用放进一条龙运行列表。
+        added_app_ids = [
+            app_id for app_id in config.added_app_ids
+            if app_id not in self._default_app_id_list
+            and self.ctx.run_context.is_app_standalone_available(app_id)
+        ]
+        config.update_full_app_list(self._default_app_id_list + added_app_ids)
 
         # 从旧的配置文件迁移过来 2026-09-21 可删除
         if need_migration:

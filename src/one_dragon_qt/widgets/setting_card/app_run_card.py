@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Signal
+from PySide6.QtGui import QContextMenuEvent
 from PySide6.QtWidgets import QWidget
 from qfluentwidgets import (
     Action,
@@ -29,6 +30,10 @@ class AppRunCard(DraggableListItem):
     switched = Signal(str, bool)
     setting_clicked = Signal(str)
     notify_clicked = Signal(str)
+    add_clicked = Signal()  # 任务列表菜单：新增
+    remove_clicked = Signal(str)  # 任务列表菜单：删除
+    run_from_clicked = Signal(str)  # 任务列表菜单：从此执行
+    clear_mark_clicked = Signal(str)  # 任务列表菜单：清除标记
 
     def __init__(
         self,
@@ -57,6 +62,21 @@ class AppRunCard(DraggableListItem):
         self.move_top_action.triggered.connect(lambda _checked=False: self._on_move_top_clicked())
         self.more_menu.addAction(self.notify_action)
         self.more_menu.addAction(self.move_top_action)
+
+        # 任务列表菜单（一条龙页面用 enable_task_actions 打开，其他地方的列表不显示）
+        self._task_actions_enabled: bool = False
+        self.add_action = Action(FluentIcon.ADD, gt('新增'), self.more_menu)
+        self.add_action.triggered.connect(lambda _checked=False: self.add_clicked.emit())
+        self.remove_action = Action(FluentIcon.DELETE, gt('删除'), self.more_menu)
+        self.remove_action.triggered.connect(lambda _checked=False: self.remove_clicked.emit(self.app.app_id))
+        self.run_from_action = Action(FluentIcon.PLAY, gt('从此执行'), self.more_menu)
+        self.run_from_action.setToolTip(gt('从这个任务开始按顺序运行一条龙，这个任务不管开关和完成标记都会运行'))
+        self.run_from_action.triggered.connect(lambda _checked=False: self.run_from_clicked.emit(self.app.app_id))
+        self.clear_mark_action = Action(FluentIcon.BROOM, gt('清除标记'), self.more_menu)
+        self.clear_mark_action.setToolTip(gt('清除今天的完成标记，下次一条龙会重新运行这个任务'))
+        self.clear_mark_action.triggered.connect(
+            lambda _checked=False: self.clear_mark_clicked.emit(self.app.app_id)
+        )
 
         self.run_btn = TransparentToolButton(FluentIcon.PLAY, None)
         self.run_btn.setToolTip(gt('运行'))
@@ -123,6 +143,40 @@ class AppRunCard(DraggableListItem):
         pos = self.more_btn.mapToGlobal(self.more_btn.rect().bottomLeft())
         self.more_menu.popup(pos)
 
+    def enable_task_actions(self, removable: bool) -> None:
+        """
+        在更多菜单和右键菜单里加上任务列表操作：新增、删除、从此执行、清除标记。
+
+        Args:
+            removable: 是否能删除。只有手动新增的任务能删除，默认一条龙任务只能关掉开关。
+        """
+        if not self._task_actions_enabled:
+            self._task_actions_enabled = True
+            self.more_menu.addSeparator()
+            self.more_menu.addAction(self.add_action)
+            self.more_menu.addAction(self.run_from_action)
+            self.more_menu.addAction(self.clear_mark_action)
+
+        # RoundMenu 不认 QAction.setVisible（隐藏的项会变成灰色留在菜单里），所以按需插入 / 移除「删除」
+        in_menu = self.remove_action in self.more_menu.menuActions()
+        if removable and not in_menu:
+            self.more_menu.insertAction(self.run_from_action, self.remove_action)
+        elif not removable and in_menu:
+            self.more_menu.removeAction(self.remove_action)
+
+    def set_task_actions_enabled(self, enabled: bool) -> None:
+        """一条龙运行中锁住 新增 / 删除 / 从此执行 / 清除标记，避免运行中改列表"""
+        for action in (self.add_action, self.remove_action, self.run_from_action, self.clear_mark_action):
+            action.setEnabled(enabled)
+
+    def contextMenuEvent(self, event: QContextMenuEvent) -> None:
+        """右键卡片时弹出和「更多」按钮一样的菜单。"""
+        if not self._task_actions_enabled or not self.more_btn.isEnabled():
+            DraggableListItem.contextMenuEvent(self, event)
+            return
+        self.more_menu.popup(event.globalPos())
+        event.accept()
+
     def _on_run_clicked(self) -> None:
         """
         运行应用
@@ -157,6 +211,7 @@ class AppRunCard(DraggableListItem):
         self.more_btn.setDisabled(arg__1)
         self.notify_action.setEnabled(not arg__1)
         self.move_top_action.setEnabled(not arg__1)
+        self.set_task_actions_enabled(not arg__1)
         self.run_btn.setDisabled(arg__1)
         self.switch_btn.setDisabled(arg__1)
 

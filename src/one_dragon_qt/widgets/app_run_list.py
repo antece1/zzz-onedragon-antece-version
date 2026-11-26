@@ -43,7 +43,19 @@ class AppRunList(DraggableList):
     # 点击应用通知设置按钮
     app_notify_clicked = Signal(str)
 
-    def __init__(self, ctx: OneDragonContext, parent=None, enable_opacity_effect: bool = True):
+    # 任务列表菜单：新增 / 删除 / 从此执行 / 清除标记（enable_task_actions=True 时才有）
+    app_add_clicked = Signal()
+    app_remove_clicked = Signal(str)
+    app_run_from_clicked = Signal(str)
+    app_clear_mark_clicked = Signal(str)
+
+    def __init__(
+        self,
+        ctx: OneDragonContext,
+        parent=None,
+        enable_opacity_effect: bool = True,
+        enable_task_actions: bool = False,
+    ):
         """
         初始化一条龙应用列表
 
@@ -52,9 +64,12 @@ class AppRunList(DraggableList):
             parent: 父组件
             enable_opacity_effect: 是否启用拖拽透明度效果（默认 True）
                 在 MessageBoxBase 等对话框中建议设为 False，避免位置偏移
+            enable_task_actions: 卡片菜单和右键菜单里是否有 新增 / 删除 / 从此执行 / 清除标记
         """
         self.ctx: OneDragonContext = ctx
         self._enable_opacity_effect: bool = enable_opacity_effect
+        self._enable_task_actions: bool = enable_task_actions
+        self._removable_app_ids: set[str] = set()
 
         # 调用父类初始化，传递透明度效果设置
         super().__init__(parent=parent, enable_opacity_effect=enable_opacity_effect)
@@ -71,7 +86,8 @@ class AppRunList(DraggableList):
     def set_app_list(
         self,
         app_list: list[ApplicationGroupConfigItem],
-        instance_idx: int
+        instance_idx: int,
+        removable_app_ids: set[str] | None = None,
     ) -> None:
         """
         设置应用列表
@@ -79,7 +95,9 @@ class AppRunList(DraggableList):
         Args:
             app_list: 应用配置列表
             instance_idx: 实例索引
+            removable_app_ids: 菜单里可以「删除」的应用（手动新增的任务）
         """
+        self._removable_app_ids = removable_app_ids or set()
         # 如果已有卡片且数量一致，更新现有卡片（更高效）
         if len(self._app_cards) > 0 and len(self._app_cards) == len(app_list):
             self._update_existing_cards(app_list, instance_idx)
@@ -110,6 +128,8 @@ class AppRunList(DraggableList):
                 card.set_app(app, run_record)
                 card.set_switch_on(app.enabled)
                 card.set_notify_visible(app.app_id in self.ctx.notify_config.app_map)
+                if self._enable_task_actions:
+                    card.enable_task_actions(app.app_id in self._removable_app_ids)
 
     def _create_new_cards(
         self,
@@ -153,6 +173,13 @@ class AppRunList(DraggableList):
             card.setting_clicked.connect(self.app_setting_clicked.emit)
             card.notify_clicked.connect(self.app_notify_clicked.emit)
             card.set_notify_visible(app.app_id in self.ctx.notify_config.app_map)
+
+            if self._enable_task_actions:
+                card.enable_task_actions(app.app_id in self._removable_app_ids)
+                card.add_clicked.connect(self.app_add_clicked.emit)
+                card.remove_clicked.connect(self.app_remove_clicked.emit)
+                card.run_from_clicked.connect(self.app_run_from_clicked.emit)
+                card.clear_mark_clicked.connect(self.app_clear_mark_clicked.emit)
 
     def update_cards_display(self) -> None:
         """

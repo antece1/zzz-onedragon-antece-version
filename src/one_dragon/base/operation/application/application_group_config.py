@@ -154,13 +154,63 @@ class ApplicationGroupConfig(YamlOperator):
             self.save_app_list()
 
     def remove_app(self, app_id: str) -> None:
-        """从应用组配置中永久移除应用。"""
+        """从应用组配置中永久移除应用。手动新增过的应用也一并从 added_app_list 去掉，免得下次加载又出现。"""
         old_all_apps = self._all_apps
         self._all_apps = [item for item in old_all_apps if item.app_id != app_id]
         self.app_list = [item for item in self.app_list if item.app_id != app_id]
 
+        added = self.added_app_ids
+        added_changed = app_id in added
+        if added_changed:
+            added.remove(app_id)
+            self.update('added_app_list', added, save=False)
+
         if len(self._all_apps) != len(old_all_apps):
             self.save_app_list()
+        elif added_changed:
+            self.save()
+
+    @property
+    def added_app_ids(self) -> list[str]:
+        """用户在一条龙「任务列表」里手动新增的应用（不在默认一条龙列表里的应用，如代理人升级）。"""
+        return list(self.get('added_app_list', []))
+
+    def add_app(self, app_id: str) -> ApplicationGroupConfigItem | None:
+        """
+        手动新增一个应用到列表末尾，默认启用。
+
+        Args:
+            app_id: 应用ID
+
+        Returns:
+            新增的配置项；已经在列表里时返回 None
+        """
+        if any(item.app_id == app_id for item in self.app_list):
+            return None
+
+        # YAML 里可能还留着这个应用的旧记录，先去掉再加到末尾
+        self._all_apps = [item for item in self._all_apps if item.app_id != app_id]
+        item = ApplicationGroupConfigItem(app_id=app_id, enabled=True, is_persisted=True)
+        self._all_apps.append(item)
+        self.app_list.append(item)
+
+        added = self.added_app_ids
+        if app_id not in added:
+            added.append(app_id)
+            self.update('added_app_list', added, save=False)
+        self.save_app_list()
+        return item
+
+    def remove_added_app(self, app_id: str) -> None:
+        """
+        删除手动新增的应用。默认一条龙应用不能删除（下次加载会自动补回来），只能关掉开关。
+
+        Args:
+            app_id: 应用ID
+        """
+        if app_id not in self.added_app_ids:
+            return
+        self.remove_app(app_id)
 
     def set_app_order(self, app_id_list: list[str]) -> None:
         """
