@@ -39,6 +39,7 @@ if not getattr(sys, 'frozen', False):
     import pyautogui
     import pyclipper
     import pygit2
+    import pythoncom
     import pyuac
     import pywintypes
     import queue
@@ -67,15 +68,17 @@ if not getattr(sys, 'frozen', False):
     import websocket
     import win32api
     import win32clipboard
+    import win32com.client
     import win32con
     import win32gui
+    import win32ts
     import win32ui
     import winreg
     import yaml
     import zipfile
     from PIL import Image, ImageDraw, ImageFont
     from PySide6 import QtCore
-    from PySide6.QtCore import QAbstractListModel, QByteArray, QEasingCurve, QEvent, QEventLoop, QMimeData, QModelIndex, QObject, QPoint, QPointF, QPropertyAnimation, QRect, QRectF, QRegularExpression, QRunnable, QSize, QThread, QThreadPool, QTimer, QUrl, Qt, Signal
+    from PySide6.QtCore import QAbstractListModel, QByteArray, QEasingCurve, QEvent, QEventLoop, QMimeData, QModelIndex, QObject, QPoint, QPointF, QPropertyAnimation, QRect, QRectF, QRegularExpression, QRunnable, QSize, QThread, QThreadPool, QTime, QTimer, QUrl, Qt, Signal
     from PySide6.QtGui import QBrush, QCloseEvent, QColor, QDesktopServices, QDrag, QDragEnterEvent, QDragLeaveEvent, QDragMoveEvent, QDropEvent, QEnterEvent, QFont, QFontMetrics, QGuiApplication, QIcon, QImage, QImageReader, QIntValidator, QKeyEvent, QKeySequence, QLinearGradient, QMouseEvent, QPaintEvent, QPainter, QPainterPath, QPen, QPixmap, QRadialGradient, QResizeEvent, QShowEvent, QSyntaxHighlighter, QTextCharFormat, QValidator, QWheelEvent, Qt
     from PySide6.QtMultimedia import QMediaPlayer
     from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
@@ -93,7 +96,7 @@ if not getattr(sys, 'frozen', False):
     from ctypes.wintypes import DWORD, HANDLE, RECT, SHORT, UINT, WCHAR, WORD
     from cv2.typing import MatLike
     from dataclasses import dataclass, field, fields
-    from datetime import datetime, timedelta
+    from datetime import date, datetime, timedelta
     from email.header import Header
     from email.mime.image import MIMEImage
     from email.mime.multipart import MIMEMultipart
@@ -114,7 +117,7 @@ if not getattr(sys, 'frozen', False):
     from pygit2.enums import CheckoutStrategy, ConfigLevel, ResetMode, SortMode
     from pynput import keyboard, mouse
     from pynput.keyboard import Controller, Key
-    from qfluentwidgets import Action, BodyLabel, BreadcrumbBar, CaptionLabel, CardWidget, CheckBox, CheckableMenu, ColorDialog, ComboBox, Dialog, DisplayLabel, DoubleSpinBox, EditableComboBox, ExpandSettingCard, FlowLayout, FluentIcon, FluentIconBase, FluentStyleSheet, FluentThemeColor, FluentWindow, FlyoutViewBase, HorizontalFlipView, HorizontalSeparator, HyperlinkButton, HyperlinkCard, IconWidget, ImageLabel, IndeterminateProgressBar, IndicatorPosition, InfoBar, InfoBarIcon, InfoBarPosition, LargeTitleLabel, LineEdit, ListItemDelegate, ListWidget, MSFluentWindow, MaskDialogBase, MenuAnimationType, MessageBox, MessageBoxBase, NavigationBar, NavigationBarPushButton, NavigationItemPosition, PillPushButton, PipsPager, PipsScrollButtonDisplayMode, Pivot, PixmapLabel, PlainTextEdit, PopUpAniStackedWidget, PrimaryPushButton, ProgressBar, ProgressRing, PushButton, PushSettingCard, RoundMenu, ScrollArea, SearchLineEdit, SegmentedWidget, SettingCard, SettingCardGroup, SimpleCardWidget, Slider, SpinBox, SplashScreen, SplitTitleBar, StrongBodyLabel, StyleSheetBase, SubtitleLabel, SwitchButton, TableWidget, TeachingTip, TeachingTipTailPosition, TextBrowser, Theme, TitleLabel, ToolButton, ToolTip, ToolTipFilter, ToolTipPosition, TransparentPushButton, TransparentToolButton, VBoxLayout, drawIcon, getFont, isDarkTheme, qconfig, qrouter, setCustomStyleSheet, setFont, setTheme, setThemeColor, themeColor
+    from qfluentwidgets import Action, BodyLabel, BreadcrumbBar, CaptionLabel, CardWidget, CheckBox, CheckableMenu, ColorDialog, ComboBox, CustomStyleSheet, Dialog, DisplayLabel, DoubleSpinBox, EditableComboBox, ExpandSettingCard, FlowLayout, FluentIcon, FluentIconBase, FluentStyleSheet, FluentThemeColor, FluentWindow, FlyoutViewBase, HorizontalFlipView, HorizontalSeparator, HyperlinkButton, HyperlinkCard, IconWidget, ImageLabel, IndeterminateProgressBar, IndicatorPosition, InfoBar, InfoBarIcon, InfoBarPosition, LargeTitleLabel, LineEdit, ListItemDelegate, ListWidget, MSFluentWindow, MaskDialogBase, MenuAnimationType, MessageBox, MessageBoxBase, NavigationBar, NavigationBarPushButton, NavigationItemPosition, PillPushButton, PipsPager, PipsScrollButtonDisplayMode, Pivot, PixmapLabel, PlainTextEdit, PopUpAniStackedWidget, PrimaryPushButton, ProgressBar, ProgressRing, PushButton, PushSettingCard, RoundMenu, ScrollArea, SearchLineEdit, SegmentedWidget, SettingCard, SettingCardGroup, SimpleCardWidget, Slider, SpinBox, SplashScreen, SplitTitleBar, StrongBodyLabel, StyleSheetBase, SubtitleLabel, SwitchButton, TableWidget, TeachingTip, TeachingTipTailPosition, TextBrowser, Theme, TimePicker, TitleLabel, ToolButton, ToolTip, ToolTipFilter, ToolTipPosition, TransparentPushButton, TransparentToolButton, VBoxLayout, drawIcon, getFont, isDarkTheme, qconfig, qrouter, setCustomStyleSheet, setFont, setStyleSheet, setTheme, setThemeColor, themeColor
     from qfluentwidgets.common.animation import BackgroundAnimationWidget, ScaleSlideAnimation
     from qfluentwidgets.common.overload import singledispatchmethod
     from qfluentwidgets.common.smooth_scroll import SmoothMode
