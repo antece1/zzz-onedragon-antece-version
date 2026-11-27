@@ -123,6 +123,7 @@ class HollowRunner(ZOperation):
         # 点击无效检测：游戏有时不再响应格子点击（实测切回桌面或手动按 WASD 后恢复）
         self._last_current_pos: Point | None = None  # 上一次点击移动时 [当前] 格子的中心
         self._click_no_move_cnt: int = 0  # 连续点击后 [当前] 格子都没变的次数
+        self._last_level: int | None = None  # 记下上面位置时所在的层数 换层后清零重新计数
 
     @operation_node(name='画面识别', is_start_node=True, node_max_retry_times=60)
     def check_screen(self) -> OperationRoundResult:
@@ -232,8 +233,19 @@ class HollowRunner(ZOperation):
                 return self.round_success(HollowRunner.STATUS_LEAVE)
 
         self._last_move_time = screen_time
-        if self._update_click_no_move_cnt(current_map) >= HollowRunner.CLICK_NO_MOVE_LIMIT:
-            self._move_by_keyboard(current_map, next_to_move)
+        no_move_cnt = self._update_click_no_move_cnt(current_map)
+        if no_move_cnt >= HollowRunner.CLICK_NO_MOVE_LIMIT:
+            step_node = self._move_by_keyboard(current_map, next_to_move)
+            # 计数超过上限 说明上一轮已经按过键也没走动 这个方向可能走不通（例如相邻格子其实是墙）
+            # 照点击时的做法给原来的移动格子记一次尝试 次数够了就不再选它（它本身就是目标时 寻路会换别的目标）
+            # 传送类格子不记：每记一次都会清空已去过的记录、阶段 +1 而且出口格子不管记没记都会再被选中
+            if (no_move_cnt > HollowRunner.CLICK_NO_MOVE_LIMIT
+                    and step_node is not next_to_move
+                    and not next_to_move.entry.is_tp):
+                self.ctx.withered_domain.update_context_after_move(current_map, next_to_move, update_current=False)
+            # 键盘只走一格 后面的等待、格子事件和移动记录都按实际走到的相邻格子算
+            # 否则目标在两格外时 会提前把目标记成已到达（例如邦布商人被记成去过 这一层就不进商店了）
+            next_to_move = step_node
         else:
             to_click = self.get_map_node_pos_to_click(screen, next_to_move)
             self.ctx.controller.click(to_click)
@@ -280,6 +292,15 @@ class HollowRunner(ZOperation):
         :param current_map: 当前地图
         :return: 更新后的连续次数
         """
+        # 换层后是新的地图 上一层记下的位置没有意义
+        # 不按阶段判断：点击传送点后 不管有没有真的走到 阶段都会 +1 按阶段清零会让点传送点一直没反应时计数到不了上限
+        level_info = self.ctx.withered_domain.level_info
+        level = level_info.level if level_info is not None else None
+        if level != self._last_level:
+            self._last_current_pos = None
+            self._click_no_move_cnt = 0
+            self._last_level = level
+
         if not current_map.is_valid_map:
             self._last_current_pos = None
             self._click_no_move_cnt = 0
@@ -294,12 +315,14 @@ class HollowRunner(ZOperation):
         self._last_current_pos = current_pos
         return self._click_no_move_cnt
 
-    def _move_by_keyboard(self, current_map: HollowZeroMap, next_to_move: HollowZeroMapNode) -> None:
+    def _move_by_keyboard(self, current_map: HollowZeroMap, next_to_move: HollowZeroMapNode) -> HollowZeroMapNode:
         """
         点击格子多次都没移动时 改用 WASD 往下一个格子走一步
-        游戏偶尔会不再响应格子点击 手动切回桌面或按 WASD 后恢复 这里先重新激活窗口 再按方向键
+        游戏偶尔会不再响应格子点击 手动切回桌面或按 WASD 后恢复
+        这里先确保游戏窗口在前台（已经在前台时不会切换） 再按方向键
         :param current_map: 当前地图
         :param next_to_move: 寻路得到的下一个移动目标
+        :return: 键盘这一步走向的相邻格子
         """
         target = next_to_move.path_first_node if next_to_move.path_first_node is not None else next_to_move
         current_pos = current_map.nodes[current_map.current_idx].pos.center
@@ -322,6 +345,7 @@ class HollowRunner(ZOperation):
             self.ctx.controller.move_a(press=True, press_time=0.1, release=True)
         else:
             self.ctx.controller.move_d(press=True, press_time=0.1, release=True)
+        return target
 
     def get_map_node_pos_to_click(self, screen: MatLike, node: HollowZeroMapNode) -> Point:
         """
