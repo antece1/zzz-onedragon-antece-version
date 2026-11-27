@@ -6,7 +6,7 @@
   "ben": false,
   "billy": false,
   "corin": false,
-  "ellen": true,
+  "ellen": false,
   "grace": false,
   "hoshimi_miyabi": true,
   "jane_doe": true,
@@ -17,14 +17,14 @@
   "panyinhu": false,
   "piper": false,
   "pulchra": false,
-  "qingyi": true,
+  "qingyi": false,
   "rina": false,
   "seth_lowell": false,
   "soldier_11": false,
   "soukaku": false,
   "yanagi": true,
-  "zhu_yuan": true,
-  "agent_1571": false
+  "zhu_yuan": false,
+  "norma": true
  },
  "tgt": {
   "anby": {
@@ -315,18 +315,18 @@
    ],
    "wl": 60
   },
-  "agent_1571": {
+  "norma": {
    "lv": 60,
    "sk": [
-    10,
     8,
-    8,
+    2,
     10,
-    10
+    12,
+    12
    ],
    "core": 6,
    "wl": 60
   }
  },
- "updated_at": "2026-11-21T19:55:17.244Z"
+ "updated_at": "2026-11-25T23:42:41-08:00"
 }
